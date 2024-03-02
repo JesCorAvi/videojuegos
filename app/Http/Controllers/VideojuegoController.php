@@ -79,7 +79,8 @@ class VideojuegoController extends Controller
             "desarrolladora_id" => $request->desarrolladora_id,
 
         ]);
-        return redirect()->route("videojuegos.index");    }
+        return redirect()->route("videojuegos.index");
+    }
 
     /**
      * Remove the specified resource from storage.
@@ -87,5 +88,35 @@ class VideojuegoController extends Controller
     public function destroy(Videojuego $videojuego)
     {
         $videojuego->delete();
-        return redirect()->route("videojuegos.index");    }
+        return redirect()->route("videojuegos.index");
+    }
+
+    public function poseoIndex()
+    {
+        return view("videojuegos.poseoIndex", ["videojuegos" =>Videojuego::all()]);
+    }
+    public function poseoCreate(Request $request)
+    {
+        $videojuego = Videojuego::where("id", $request->videojuego_id)->first();
+        $user = auth()->user();
+        if ($request->opcion == "Lo tengo"){
+            if(!$videojuego->users->find($user->id)){
+                $videojuego->users()->attach($user->id);
+                $info = "El juego ha sido añadido a su lista";
+            }else{
+                $info = "EL juego ya se encontraba en ese estado";
+            }
+        }else if($request->opcion == "No lo tengo"){
+            if($videojuego->users->find($user->id)){
+                $videojuego->users()->detach($user->id);
+                $info = "El juego ha sido eliminado de su lista";
+            }
+            else{
+                $info = "EL juego ya se encontraba en ese estado";
+
+            }
+        }
+
+        return redirect()->route("videojuegos.poseo")->with('info', $info);
+    }
 }
